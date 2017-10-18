@@ -1,0 +1,36 @@
+* {
+  box-sizing: border-box;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-image: url('img/00.jpg');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.clock {
+  top: calc(100vh / 2 - 100px);
+  width: 100vw;
+  height: 200px;
+  position: absolute;
+  display: block;
+  text-align: center;
+  font-size: 90px;
+  font-family: sans-serif;
+  color: white;
+  vertical-align: middle;
+}
+
+#decTime {
+  padding-top: 55px;
+}
+
+#hexTime {
+  padding-top: 50px;
+}
