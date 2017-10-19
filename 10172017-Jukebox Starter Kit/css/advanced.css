@@ -1,2 +1,15 @@
 ﻿body {
 }
+
+#musicList {
+    display: block;
+    width: 100vw;
+    height: 400px;
+    min-height: 300px;
+    overflow: scroll;
+    margin: 10px auto;
+}
+
+#musicList li{
+    cursor: pointer;
+}
