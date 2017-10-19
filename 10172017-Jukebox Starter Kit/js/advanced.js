@@ -12,7 +12,7 @@
             this.modeOrder = 'orderSequence';
             this.statePlay = 'stateInvalid';
             this.objAudio = null;
-            this.indexMusic = 0;
+            this.indexMusic = -1;
         }
 
         createElement() {
@@ -65,7 +65,7 @@
         playNext(step) {
             if (this.modeOrder !== 'orderSequence')
                 this.indexMusic = Math.round(Math.random() * this.listMusic.children.length);
-            else {
+            else if (this.modeLoop !== 'loopSingle') {
                 this.indexMusic += step;
                 if (this.indexMusic < 0)
                     this.indexMusic = this.listMusic.children.length - 1;
@@ -80,8 +80,15 @@
             this.objAudio.src = this.listMusic.children[this.indexMusic].url;
             this.rangeProgress.value = 0;
             this.musicTime.innerText = '00:00/00:00';
-            if (this.statePlay == 'statePlaying')
-                this.objAudio.play();
+            if (this.statePlay === 'statePlaying')
+                this.objAudio.play().catch(e=>{
+                    this.statePlay = 'stateInvalid';
+                    this.objAudio.src = '';
+                    this.musicName.innerText = '';
+                    this.musicTime.innerText = '';
+                    this.rangeProgress.value = 0;
+                    this.indexMusic = -1;
+                });
         }
 
         Init() {
@@ -89,20 +96,15 @@
                 {
                     innerHTML: 'Your browser does not support HTML5 <code>audio</code> tags.',
                     ontimeupdate: event => {
-                        this.rangeProgress.value = this.objAudio.currentTime / this.objAudio.duration * 100.;
-                        this.musicTime.innerText = this.formatDuration(this.objAudio.currentTime) + '/' + this.formatDuration(this.objAudio.duration);
+                        if (this.statePlay !== 'stateInvalid') {
+                            this.rangeProgress.value = this.objAudio.currentTime / this.objAudio.duration * 100.;
+                            this.musicTime.innerText = this.formatDuration(this.objAudio.currentTime) + '/' + this.formatDuration(this.objAudio.duration);
+                        }
                     },
                     onerror: event => {
-
                     },
                     onended: event => {
-                        if (this.modeLoop == 'loopSingle') {
-                            this.objAudio.duration = 0;
-                            this.objAudio.play();
-                        }
-                        else if (this.modeLoop == 'loopAll') {
-
-                        }
+                        this.playNext(1);
                     }
                 });
 
@@ -235,6 +237,12 @@
                 }, {});
             this.musicName = this.createElement({ tagName: 'div', parentObject: this.objParent, id: 'infoName', background: clrBkgrnd }, {});
         }
+
+        playSpec(item) {
+            this.indexMusic = item;
+            this.statePlay = 'statePlaying';
+            this.playNext(0);
+        }
     }
 
     var ctrls = document.querySelector('#ctrls');
@@ -262,6 +270,13 @@
                     event.target.style.color = 'black';
                 };
             }
+            el.ondblclick = event=> {
+                var i = 0;
+                var child = event.target;
+                while ((child = child.previousSibling) != null)
+                    i++;
+                audioPlayCtrl.playSpec(i);
+            }
             list.appendChild(el);
         });
     }
@@ -276,7 +291,7 @@
         let musicName = document.querySelector("#inputMusicName");
         let musicUrl = document.querySelector("#inputMusicUrl");
         if (!musicName.value || !musicUrl.value) return;
-        addMusic([{ name: musicName, url: mucisUrl }]);
+        addMusic([{ name: musicName.value, url: musicUrl.value }]);
     });
 
     document.querySelector("#btnDel").addEventListener('click', event => {
