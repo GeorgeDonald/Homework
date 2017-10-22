@@ -302,4 +302,15 @@
             }
         }
     });
+
+    document.querySelector("#btnBrowse").addEventListener('change', event => {
+        for (let i = 0; i < event.target.files.length; i++) {
+            let file = event.target.files[i];
+            //addMusic([{ name: file.name, url: file.name }]);
+            console.log('Name: ' + file.name);
+            console.log('File Name: ' + file.filename);
+            console.log('File Full Path: ' + file.mozFullPath);
+            console.log('File URL: ' + file.getAsDataURL());
+        }
+    });
 })();

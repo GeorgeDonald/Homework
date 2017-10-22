@@ -6,3 +6,6 @@
 *.mkv
 *.config
 .vs/
+env.js
+*.psd
+
