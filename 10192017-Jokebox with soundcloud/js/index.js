@@ -174,6 +174,7 @@
                     playingitem = 0;
                 break;
         }
+
         return playingList[playingitem].Track;
     }
 
@@ -235,11 +236,11 @@
     }
 
     function onPrev(pannel) {
-        playNext(pannel, -1);
+        playNext(-1);
     }
 
     function onNext(pannel) {
-        playNext(pannel, 1);
+        playNext(1);
     }
 
     function onLoop(pannel, state) {
