@@ -307,12 +307,12 @@
                 {
                     tagName: 'tr',
                     parentObject: this.InfoTable,
-                    innerHTML: track.user.permalink_url ? '<td style="overflow:hidden">Artist Name: <a href="' + track.user.permalink_url + '">' + track.user.username + '</a></td>' :
+                    innerHTML: track.user.permalink_url ? '<td style="overflow:hidden">Artist Name: <a href="' + track.user.permalink_url + '" target="_blank">' + track.user.username + '</a></td>' :
                         '<td style="overflow:hidden">Artist Name: ' + track.user.username + '</td>',
                 }, {
                     tagName: 'tr',
                     parentObject: this.InfoTable,
-                    innerHTML: track.permalink_url ? '<td style="overflow:hidden"><a href="' + track.permalink_url + '">' + track.title + '</a></td>' :
+                    innerHTML: track.permalink_url ? '<td style="overflow:hidden"><a href="' + track.permalink_url + '" target="_blank">' + track.title + '</a></td>' :
                         '<td style="overflow:hidden">' + track.title + '</td>',
                 }, {
                     tagName: 'tr',
