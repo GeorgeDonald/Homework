@@ -1,7 +1,7 @@
 ﻿const georgeJSMusicPlayerPannel = (class {
     constructor() {
         this.objParent = arguments[0];
-
+        this.bDisabled = false;
         let properties = georgeJSBase.combineArguments(arguments, 1);
         this.eventCallbacks={};
         let cbs=[
@@ -69,7 +69,7 @@
                 NormalImage0: './img/play_normal.png',
                 HoverImage0: './img/play_hover.png',
                 ActiveImage0: './img/play_active.png',
-                DisableImage0: './img/play_disabled.png',
+                DisableImage: './img/play_disabled.png',
             }],
             ['Pause', { innerText0: '❙❙', id: 'btnPause', onclick: this.onPause }],
             ['Stop', { innerText0: '◼', id: 'btnStop', onclick: this.onStop }],
@@ -154,7 +154,7 @@
     onMute(event, btn) {
         let oThis = btn.ptrThisClass;
         if (oThis.eventCallbacks.onMute)
-            oThis.eventCallbacks.onMute(oThis, oThis.Controls.Play.ButtonState);
+            oThis.eventCallbacks.onMute(oThis, oThis.Controls.Mute.ButtonState);
     }
     onVolumeChanged(event) {
         let oThis = this.ptrThisClass;
@@ -163,8 +163,29 @@
     }
     onDurationChanged(event) {
         let oThis = this.ptrThisClass;
+        if(oThis.bDisabled)
+        {
+            return;
+        }
+
         if (oThis.eventCallbacks.onDurationChanged)
             oThis.eventCallbacks.onDurationChanged(oThis, event.target.value);
+    }
+
+    set Enable(val) {
+        this.bDisabled = !val;
+        let btns = [
+            'Play',
+            'Pause',
+            'Stop',
+            'Prev',
+            'Next',
+            'Loop',
+            'Mute'
+        ];
+        for (let i = 0; i < btns.length; i++) {
+            this.Controls[btns[i]].Enable = val;
+        }
     }
 });
 
@@ -236,7 +257,6 @@ const georgeJSImageInfoItem = (class {
     onSelectStateChanged() {
         this.objPannel.style.backgroundColor = this.bSelected ? 'blue' : 'white';
         this.objPannel.style.color = this.bSelected ? 'white' : 'black';
-        console.log('changed?');
     }
 
     set AutoSelect(val) {

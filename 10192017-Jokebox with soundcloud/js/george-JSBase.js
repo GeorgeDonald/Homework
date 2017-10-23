@@ -148,7 +148,7 @@
         s %= 3600;
         let m = Math.trunc(s / 60);
         s %= 60;
-        return h > 0 ? (this.formatPadZero(h, 2) + ':') : '' + this.formatPadZero(m, 2) + ':' + this.formatPadZero(s, 2);
+        return h > 0 ? (this.formatNumber(h, 2) + ':') : '' + this.formatNumber(m, 2) + ':' + this.formatNumber(s, 2);
     }
 
     function getNamedColorHex(clr) {
@@ -561,16 +561,16 @@
             if (this.bDisabled) {
                 this.objElement.style.boxShadow = '';
                 this.objElement.style.color = this.clrDisabled;
-                if (this.stateImage[0]&&this.stateImage[0].imgNormal) {
+                if (this.stateImages[0]&&this.stateImages[0].imgNormal) {
                     if (this.imgDisabled)
                         this.objImg.src = this.imgDisabled;
                     else
-                        this.objImg.src = this.stateImage[0].imgNormal;
+                        this.objImg.src = this.stateImages[0].imgNormal;
                 }
             } else {
                 this.objElement.style.color = this.clrNormal;
-                if (this.stateImage[0] && this.stateImage[0].imgNormal) {
-                    this.objImg.src = this.stateImage[0].imgNormal;
+                if (this.stateImages[0] && this.stateImages[0].imgNormal) {
+                    this.objImg.src = this.stateImages[0].imgNormal;
                 }
             }
         }
