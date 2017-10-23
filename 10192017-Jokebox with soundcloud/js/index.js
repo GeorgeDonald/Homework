@@ -7,6 +7,121 @@
     var playPannel;
     var prevProgress = -1000;
 
+    var audioElement = document.createElement('audio');
+    document.querySelector('body').appendChild(audioElement);
+
+    class audioPlayer {
+        constructor(type,player,cbUpdateProgress,cbPlayEnd) {
+            this.type = type;
+            this.player = player;
+            this.cbUpdateProgress = cbUpdateProgress;
+            this.cbPlayEnd = cbPlayEnd;
+
+            switch (this.type) {
+                case 'htmlAudio':
+                    player.onended = this.onPlayEnd;
+                    player.ontimeupdate = this.onUpdateProgress;
+                    player.ptrThisClass = this;
+                    break;
+                case 'soundCloud':
+                    player.on('finish', this.onPlayEnd);
+                    player.on('time', this.onUpdateProgress);
+                    player.ptrThisClass = this;
+                    break;
+                default:
+                    throw Error('Unsupported player');
+            }
+        }
+
+        onUpdateProgress() {
+            if (this.ptrThisClass && this.ptrThisClass.cbUpdateProgress) {
+                this.ptrThisClass.cbUpdateProgress();
+            } else {
+                console.log(this);
+                console.log(this.cbUpdateProgress);
+                console.log(this.ptrThisClass);
+                console.log("I'm lost in onUpdateProgress callback.");
+            }
+        }
+
+        onPlayEnd() {
+            if (this.ptrThisClass && this.ptrThisClass.cbPlayEnd)
+                this.ptrThisClass.cbPlayEnd();
+            else {
+                console.log(this.cbUpdateProgress);
+                console.log(this.ptrThisClass);
+                console.log("I'm lost in onPlayEnd callback.");
+            }
+        }
+
+        set currentTime(val) {
+            switch (this.type) {
+                case 'htmlAudio':
+                    this.player.currentTime = val/1000;
+                    break;
+                case 'soundCloud':
+                    this.player.seek(val);
+                    break;
+            }
+        }
+
+        get currentTime() {
+            switch (this.type) {
+                case 'htmlAudio':
+                    return this.player.currentTime*1000;
+                case 'soundCloud':
+                    return this.player.currentTime();
+            }
+        }
+
+        get duration() {
+            switch (this.type) {
+                case 'htmlAudio':
+                    return this.player.duration*1000;
+                case 'soundCloud':
+                    return this.player.getDuration();
+            }
+        }
+
+        set volume(val) {
+            switch (this.type) {
+                case 'htmlAudio':
+                    this.player.volume = val;
+                    break;
+                case 'soundCloud':
+                    this.player.setVolume(val);
+                    break;
+            }
+        }
+
+        get volume() {
+            switch (this.type) {
+                case 'htmlAudio':
+                    return this.player.volume;
+                case 'soundCloud':
+                    return this.player.getVolume();
+            }
+        }
+
+        play() {
+            switch (this.type) {
+                case 'htmlAudio':
+                    return this.player.play();
+                case 'soundCloud':
+                    return this.player.play();
+            }
+        }
+
+        pause() {
+            switch (this.type) {
+                case 'htmlAudio':
+                    return this.player.pause();
+                case 'soundCloud':
+                    return this.player.pause();
+            }
+        }
+    }
+
     //*
     (function (ENV) {
         const id = ENV.client_id;
@@ -24,14 +139,16 @@
         if (playingtrack == null)
             return;
 
-        let cur = playingtrack.currentTime();
+        let cur = playingtrack.currentTime;
         if ((cur - prevProgress) < 1000)
             return;
+
         prevProgress = cur;
-        let dur = playingtrack.getDuration();
+        let dur = playingtrack.duration;
         playPannel.Controls.Duration.value = cur / dur * 100;
         playPannel.Controls.Time.innerText = georgeJSBase.formatDuration(cur/1000) + ' / ' + georgeJSBase.formatDuration(dur/1000);
     }
+
     function getNextTrack(jump) {
         if (!playingList.length)
             return null;
@@ -65,17 +182,28 @@
         if (track == null)
             return;
 
+        if (playingtrack != null)
+            playingtrack.pause();
+
         playingtrack = null;
-        SC.stream(`/tracks/${track.id}`).then(function (player) {
-            playingtrack = player;
-            playingtrack.setVolume(playPannel.Controls.Volume.value);
+        if (track.id !== null) {
+            SC.stream(`/tracks/${track.id}`).then(function (player) {
+                playingtrack = new audioPlayer('soundCloud', player, onUpdateProgress, onPlayFinished);
+                playingtrack.volume = playPannel.Controls.Volume.value;
+                playPannel.Controls.Name.innerText = track.title;
+                prevProgress = -1000;
+                playingtrack.play();
+                currentPlayState = 'Playing';
+            });
+        } else {
+            audioElement.src = track.personnal_url;
+            playingtrack = new audioPlayer('htmlAudio', audioElement, onUpdateProgress, onPlayFinished);
+            playingtrack.volume = playPannel.Controls.Volume.value;
             playPannel.Controls.Name.innerText = track.title;
-            playingtrack.on('finish', onPlayFinished);
-            playingtrack.on('time', onUpdateProgress);
             prevProgress = -1000;
             playingtrack.play();
             currentPlayState = 'Playing';
-        });
+        }
     }
 
     function onPlay(pannel) {
@@ -101,7 +229,7 @@
     function onStop(pannel) {
         if (playingtrack != null) {
             playingtrack.pause();
-            playingtrack.seek(0);
+            playingtrack.currentTime = 0;
              currentPlayState = 'Paused';
        }
     }
@@ -120,18 +248,18 @@
     function onMute(pannel, state) {
         console.log(state);
         if (playingtrack != null)
-            playingtrack.setVolume(state?0:pannel.Controls.Volume.value);
+            playingtrack.volume = state ? 0 : pannel.Controls.Volume.value;
     }
 
     function onVolumeChanged(pannel, volume) {
         if (playingtrack != null)
-            playingtrack.setVolume(pannel.Controls.Volume.value);
+            playingtrack.volume = pannel.Controls.Volume.value;
     }
 
     function onDurationChanged(btn, current) {
         console.log(current);
         if (playingtrack != null)
-            playingtrack.seek(current / 100 * playingtrack.getDuration());
+            playingtrack.currentTime=(current / 100 * playingtrack.duration);
     }
 
 
@@ -178,12 +306,12 @@
                 {
                     tagName: 'tr',
                     parentObject: this.InfoTable,
-                    innerHTML: track.user.permaling_url ? '<td style="overflow:hidden">Artist Name: <a href="' + track.user.permaling_url + '">' + track.user.username + '</a></td>' :
+                    innerHTML: track.user.permalink_url ? '<td style="overflow:hidden">Artist Name: <a href="' + track.user.permalink_url + '">' + track.user.username + '</a></td>' :
                         '<td style="overflow:hidden">Artist Name: ' + track.user.username + '</td>',
                 }, {
                     tagName: 'tr',
                     parentObject: this.InfoTable,
-                    innerHTML: track.permaling_url ? '<td style="overflow:hidden"><a href="' + track.permaling_url + '">' + track.title + '</a></td>' :
+                    innerHTML: track.permalink_url ? '<td style="overflow:hidden"><a href="' + track.permalink_url + '">' + track.title + '</a></td>' :
                         '<td style="overflow:hidden">' + track.title + '</td>',
                 }, {
                     tagName: 'tr',
@@ -236,6 +364,54 @@
         playPannel.Enable = !!playingList.length;
     }
 
+    function onAddPersonal(event) {
+        let add = document.querySelector('#addText');
+        if (!add.value)
+            return;
+
+        var track = {};
+        track['title'] = 'unknown';
+        track['id'] = null;
+        track['personnal_url'] = add.value;
+        track['artwork_url'] = './img/default.jpg';
+        track['user'] = {};
+        track['user']['username'] = 'unknown';
+        track['user']['permalink'] = '';
+
+        let plst = document.querySelector('#playingList');
+        playingList.push(new CMusicItem(plst, track));
+        playPannel.Enable = !!playingList.length;
+    }
+
+    function onDelete() {
+        let plst = document.querySelector('#playingList');
+        let isPlaying = false;
+        for (let i = 0; i < playingList.length; i++) {
+            if (i == playingitem && playingList[i].Select) {
+                playingtrack.pause();
+                playingtrack = null;
+                isPlaying = true;
+                break;
+            }
+        }
+
+        for (let i = 0; i < playingList.length; i++) {
+            if (playingList[i].Select) {
+                plst.removeChild(playingList[i].objPannel);
+                playingList.splice(i,1);
+                i--;
+            }
+        }
+
+        if (currentPlayState == 'Playing' && isPlaying)
+            playNext(1);
+
+        if (!playingList.length)
+            playPannel.Enable = false;
+    }
+
     document.querySelector('#searchButton').addEventListener('click', onSearch);
     document.querySelector('#addToList').addEventListener('click', onAddToList);
+    document.querySelector('#addPersonal').addEventListener('click', onAddPersonal);
+    document.querySelector('#del').addEventListener('click', onDelete);
 })();
