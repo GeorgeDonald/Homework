@@ -8,6 +8,17 @@
             console.log(msg);
         }
         ) : undefined;
+    var Assert=function(bool, msg){
+        if (!debugMode || bool) return;
+        alert(msg);
+    }
+
+    function combineArguments(args,startIndex) {
+        let comb = {};
+        for (let i = startIndex || 0; i < args.length; i++)
+            comb = Object.assign(comb, args[i]);
+        return comb;
+    }
 
     function objectToArray(obj, arr) {
         Object.keys(obj).map(function (key) {
@@ -242,9 +253,7 @@
                 cursor: 'pointer',
             };
 
-            let properties = {};
-            for (let i = 1; i < arguments.length; i++)
-                properties = Object.assign(properties, arguments[i]);
+            let properties = combineArguments(arguments,1);
 
             this.bDisabled = properties.Disable || false;
             delete properties.Disable;
@@ -445,7 +454,7 @@
             }
 
             if (oThis.onMouseEvent.onclick)
-                oThis.onMouseEvent.onclick(event);
+                oThis.onMouseEvent.onclick(event,oThis);
         }
 
         onMouseDblClick(event) {
@@ -453,14 +462,14 @@
             if (oThis.bDisabled)
                 return;
             if (oThis.onMouseEvent.ondblclick)
-                oThis.onMouseEvent.ondblclick(event);
+                oThis.onMouseEvent.ondblclick(event, oThis);
         }
         onMouseEnter(event) {
             let oThis = this.ptrInstanceClass;
             if (oThis.bDisabled)
                 return;
             if (oThis.onMouseEvent.onmouseenter)
-                oThis.onMouseEvent.onmouseenter(event);
+                oThis.onMouseEvent.onmouseenter(event, oThis);
         }
         onMouseLeave(event) {
             let oThis = this.ptrInstanceClass;
@@ -468,21 +477,21 @@
             if (oThis.bDisabled)
                 return;
             if (oThis.onMouseEvent.onmouseleave)
-                oThis.onMouseEvent.onmouseleave(event);
+                oThis.onMouseEvent.onmouseleave(event, oThis);
         }
         onMouseMove(event) {
             let oThis = this.ptrInstanceClass;
             if (oThis.bDisabled)
                 return;
             if (oThis.onMouseEvent.onmousemove)
-                oThis.onMouseEvent.onmousemove(event);
+                oThis.onMouseEvent.onmousemove(event, oThis);
         }
         onContextmenu(event) {
             let oThis = this.ptrInstanceClass;
             if (oThis.bDisabled)
                 return;
             if (oThis.onMouseEvent.oncontextmenu)
-                oThis.onMouseEvent.oncontextmenu(event);
+                oThis.onMouseEvent.oncontextmenu(event, oThis);
         }
 
         onMouseOut(event) {
@@ -496,7 +505,7 @@
                 oThis.objImg.src = oThis.stateImages[oThis.stateCurrent].imgNormal;
             }
             if (oThis.onMouseEvent.onmouseout)
-                oThis.onMouseEvent.onmouseout(event);
+                oThis.onMouseEvent.onmouseout(event, oThis);
         }
 
         onMouseOver(event) {
@@ -512,7 +521,7 @@
             else
                 oThis.objElement.style.boxShadow = oThis.hoverShadow;
             if (oThis.onMouseEvent.onmouseover)
-                oThis.onMouseEvent.onmouseover(event);
+                oThis.onMouseEvent.onmouseover(event, oThis);
         }
 
         onMouseDown(event) {
@@ -528,7 +537,7 @@
             else
                 oThis.objElement.style.boxShadow = oThis.activeShadow;
             if (oThis.onMouseEvent.onmousedown)
-                oThis.onMouseEvent.onmousedown(event);
+                oThis.onMouseEvent.onmousedown(event, oThis);
         }
 
         onMouseUp(event) {
@@ -544,7 +553,7 @@
             else
                 oThis.objElement.style.boxShadow = oThis.hoverShadow;
             if (oThis.onMouseEvent.onmouseup)
-                oThis.onMouseEvent.onmouseup(event);
+                oThis.onMouseEvent.onmouseup(event, oThis);
         }
 
         set Enable(val) {
@@ -589,5 +598,9 @@
         }
     }
 
-    return { objectToArray, createElement, formatNumber, formatDuration, CButton, getNamedColorHex, getRGB };
+    return {
+        LogMessage, Assert, combineArguments, objectToArray,
+        createElement, formatNumber, formatDuration, getNamedColorHex, getRGB,
+        CButton
+    };
 })();

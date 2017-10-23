@@ -2,9 +2,23 @@
     constructor() {
         this.objParent = arguments[0];
 
-        let properties = {};
-        for (let i = 1; i < arguments.length; i++)
-            properties = Object.assign(properties, arguments[i]);
+        let properties = georgeJSBase.combineArguments(arguments, 1);
+        this.eventCallbacks={};
+        let cbs=[
+            'onPlay',
+            'onPause',
+            'onStop',
+            'onPrev',
+            'onNext',
+            'onLoop',
+            'onMute',
+            'onVolumeChanged',
+            'onDurationChanged',
+        ];
+        for (let i = 0; i < cbs.length; i++) {
+            this.eventCallbacks[cbs[i]] = properties[cbs[i]];
+            delete properties[cbs[i]];
+        }
 
         let defaultProperties = {
             subField_InnerPannel00: 'style',
@@ -68,6 +82,7 @@
         let left = 3;
         for (let i = 0; i < btns.length; i++, left += ctrlWidth + 6) {
             this.Controls[btns[i][0]] = new clsBtn(this.objPannel, btns[i][1], commonBtnStyle, { left: `${left}px` });
+            this.Controls[btns[i][0]].ptrThisClass = this;
         }
 
         left += 3;
@@ -102,35 +117,137 @@
 
         for (let i = 0; i < ctrls.length; i++) {
             this.Controls[ctrls[i][0]] = georgeJSBase.createElement(ctrls[i][1])[0];
+            this.Controls[ctrls[i][0]].ptrThisClass = this;
         }
     }
 
-    onPlay(event) {
-        console.log(event.target.innerText+" clicked");
+    onPlay(event, btn) {
+        let oThis = btn.ptrThisClass;
+        if (oThis.eventCallbacks.onPlay)
+            oThis.eventCallbacks.onPlay(oThis);
     }
-    onPause(event) {
-        console.log(event.target.innerText + " clicked");
+    onPause(event, btn) {
+        let oThis = btn.ptrThisClass;
+        if (oThis.eventCallbacks.onPause)
+            oThis.eventCallbacks.onPause(oThis);
     }
-    onStop(event) {
-        console.log(event.target.innerText + " clicked");
+    onStop(event, btn) {
+        let oThis = btn.ptrThisClass;
+        if (oThis.eventCallbacks.onStop)
+            oThis.eventCallbacks.onStop(oThis);
     }
-    onPrev(event) {
-        console.log(event.target.innerText + " clicked");
+    onPrev(event, btn) {
+        let oThis = btn.ptrThisClass;
+        if (oThis.eventCallbacks.onPrev)
+            oThis.eventCallbacks.onPrev(oThis);
     }
-    onNext(event) {
-        console.log(event.target.innerText + " clicked");
+    onNext(event, btn) {
+        let oThis = btn.ptrThisClass;
+        if (oThis.eventCallbacks.onNext)
+            oThis.eventCallbacks.onNext(oThis);
     }
-    onLoop(event) {
-        console.log(event.target.innerText + " clicked");
+    onLoop(event, btn) {
+        let oThis = btn.ptrThisClass;
+        if (oThis.eventCallbacks.onLoop)
+            oThis.eventCallbacks.onLoop(oThis, oThis.Controls.Loop.ButtonState);
     }
-    onMute(event) {
-        console.log(event.target.innerText + " clicked");
+    onMute(event, btn) {
+        let oThis = btn.ptrThisClass;
+        if (oThis.eventCallbacks.onMute)
+            oThis.eventCallbacks.onMute(oThis, oThis.Controls.Play.ButtonState);
     }
     onVolumeChanged(event) {
-        console.log('Volume: '+event.target.value);
+        let oThis = this.ptrThisClass;
+        if (oThis.eventCallbacks.onVolumeChanged)
+            oThis.eventCallbacks.onVolumeChanged(oThis, event.target.value);
     }
     onDurationChanged(event) {
-        //if (this.statePlay !== 'stateInvalid') this.objAudio.currentTime = event.target.value / 100. * this.objAudio.duration; 
-        console.log('Volume: ' + event.target.value);
+        let oThis = this.ptrThisClass;
+        if (oThis.eventCallbacks.onDurationChanged)
+            oThis.eventCallbacks.onDurationChanged(oThis, event.target.value);
+    }
+});
+
+
+const georgeJSImageInfoItem = (class {
+    constructor(parent) {
+        this.bAutoSelect = false;
+        this.bSelected = false;
+        let properties = georgeJSBase.combineArguments(arguments, 1);
+        this.objPannel = georgeJSBase.createElement({
+            tagName: 'table',
+            parentObject: parent,
+            onclick: this.onTableClicked,
+            subField_ImageInfoItem0: 'style',
+            color: 'black',
+            border: '1px 0 1px 0 black',
+            subField_ImageInfoItem1: '..',
+        }, properties)[0];
+
+        this.objPannel.ptrThisClass = this;
+
+        this.objRow = georgeJSBase.createElement({
+            tagName: 'tr',
+            parentObject: this.objPannel,
+        })[0];
+
+        this.Columns = georgeJSBase.createElement(
+            {
+                tagName: 'td',
+                parentObject: this.objRow,
+                subField: 'style',
+                width: '96px',
+                verticalAlign: 'middle',
+                overflow: 'hidden',
+            },
+            {
+                tagName: 'td',
+                parentObject: this.objRow,
+                subField: 'style',
+                verticalAlign: 'middle',
+                overflow: 'hidden',
+            }
+        );
+
+        georgeJSBase.Assert(this.Columns.length === 2, 'Two items should be created.')
+        this.objImage = georgeJSBase.createElement(
+            {
+                tagName: 'img',
+                parentObject: this.Columns[0],
+                subField: 'style',
+                width: '80%',
+                height: 'auto',
+            })[0];
+    }
+
+    set imgSrc(val) {
+        this.objImage.src = val;
+    }
+
+    set Select(val) {
+        this.bSelected = val;
+        this.onSelectStateChanged();
+    }
+
+    get Select() {
+        return this.bSelected;
+    }
+
+    onSelectStateChanged() {
+        this.objPannel.style.backgroundColor = this.bSelected ? 'blue' : 'white';
+        this.objPannel.style.color = this.bSelected ? 'white' : 'black';
+        console.log('changed?');
+    }
+
+    set AutoSelect(val) {
+        this.bAutoSelect = val;
+    }
+
+    onTableClicked(event) {
+        let oThis = this.ptrThisClass;
+        if (!oThis.bAutoSelect)
+            return;
+        oThis.bSelected = !oThis.bSelected;
+        oThis.onSelectStateChanged();
     }
 });
